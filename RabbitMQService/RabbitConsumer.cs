@@ -24,50 +24,44 @@ namespace RabbitMQService
         public void Subscribe(string routingKey, EventHandler<BasicDeliverEventArgs> receivedHandler)
         {
             using (var connection = _rabbitConnection.ConnectionFactory())
+            using (var channel = connection.CreateModel())
             {
-                using (var channel = connection.CreateModel())
-                {
-                    channel.QueueDeclare(queue: routingKey,
-                                         durable: false,
-                                         exclusive: false,
-                                         autoDelete: false,
-                                         arguments: null);
+                channel.QueueDeclare(queue: routingKey,
+                                     durable: false,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
 
-                    var consumer = new EventingBasicConsumer(channel);
+                var consumer = new EventingBasicConsumer(channel);
 
-                    consumer.Received += receivedHandler;
+                consumer.Received += receivedHandler;
 
-                    channel.BasicConsume(queue: routingKey, autoAck: true, consumer: consumer);
+                channel.BasicConsume(queue: routingKey, autoAck: true, consumer: consumer);
 
-                    Console.ReadLine();
-                }
+                Console.ReadLine();
             }
         }
 
         public void Subscribe(string routingKey, Action<byte[]> receivedHandler)
         {
             using (var connection = _rabbitConnection.ConnectionFactory())
+            using (var channel = connection.CreateModel())
+            using (var signal = new ManualResetEvent(false))
             {
-                using (var channel = connection.CreateModel())
+                var consumer = new EventingBasicConsumer(channel);
+                consumer.Received += (sender, args) =>
                 {
-                    using (var signal = new ManualResetEvent(false))
-                    {
-                        var consumer = new EventingBasicConsumer(channel);
-                        consumer.Received += (sender, args) =>
-                        {
-                            receivedHandler(args.Body);
-                            signal.Set();
-                        };
+                    receivedHandler(args.Body);
+                    signal.Set();
+                };
 
-                        channel.BasicConsume(queue: routingKey, autoAck: false, consumer: consumer);
-                        bool timeout = !signal.WaitOne(TimeSpan.FromSeconds(TaskTimeout));
+                channel.BasicConsume(queue: routingKey, autoAck: false, consumer: consumer);
+                bool timeout = !signal.WaitOne(TimeSpan.FromSeconds(TaskTimeout));
 
-                        channel.BasicCancel(consumer.ConsumerTag);
-                        if (timeout)
-                        {
-                            throw new Exception("timeout");
-                        }
-                    }
+                channel.BasicCancel(consumer.ConsumerTag);
+                if (timeout)
+                {
+                    throw new Exception("timeout");
                 }
             }
         }
