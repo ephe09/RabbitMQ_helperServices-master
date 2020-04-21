@@ -23,6 +23,8 @@ namespace _ConsumerApp
             // Using second sample
             //consumer.Subscribe(Queens.QueenTopic, Consumer_Received_Sample_EventHandler);
 
+            //Testing..asasdsd
+
             Console.ReadKey();
         }
 
