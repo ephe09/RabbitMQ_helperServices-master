@@ -24,6 +24,7 @@ namespace _ConsumerApp
             //consumer.Subscribe(Queens.QueenTopic, Consumer_Received_Sample_EventHandler);
 
             //Testing..asasdsd
+            // Hello World
 
             Console.ReadKey();
         }
