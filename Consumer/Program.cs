@@ -23,7 +23,7 @@ namespace _ConsumerApp
             // Using second sample
             //consumer.Subscribe(Queens.QueenTopic, Consumer_Received_Sample_EventHandler);
 
-            //Testing..asasdsd
+            //Testing..asasdsdasdasdasd
             // Hello World
             //ephe 2 denemeleri 
             Console.ReadKey();
